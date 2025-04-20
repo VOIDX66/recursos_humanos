@@ -1,7 +1,7 @@
 // responses.rs
 
-use actix_web::HttpResponse;  // Eliminar `Responder` ya que no es necesario
-use serde::Serialize;  // Mantener este import
+use actix_web::HttpResponse;
+use serde::Serialize;
 
 // Definimos una estructura para la respuesta
 #[derive(Serialize)]  // Agrega este atributo para derivar `Serialize`

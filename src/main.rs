@@ -44,9 +44,9 @@ async fn main() -> std::io::Result<()> {
     dotenv().ok();
 
     // Obtener el puerto desde las variables de entorno, si no está definido usar 8080 por defecto
-    let port = env::var("PORT").unwrap_or_else(|_| "8080".to_string());
+    let port = env::var("PORT").unwrap_or_else(|_| "4500".to_string());
     let host = env::var("DB_HOST").unwrap_or_else(|_| "localhost".to_string());
-    println!("Starting server on http://{host}:{port}");
+    println!("Starting server on http://localhost:{port}");
 
     // Iniciar el servidor Actix Web
     HttpServer::new(|| {
