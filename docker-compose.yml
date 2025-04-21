@@ -26,7 +26,6 @@ services:
         condition: service_healthy
     ports:
       - "${PORT}:${PORT}"
-    command: sh -c "diesel migration run && ./recursos_humanos_back"
 
 volumes:
   postgres_data:

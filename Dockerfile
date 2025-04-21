@@ -9,7 +9,6 @@ WORKDIR /app
 
 # Copia archivos de configuración y dependencias primero (mejor uso de cache)
 COPY Cargo.toml Cargo.lock ./
-COPY diesel.toml ./
 
 # Crea un dummy para compilar dependencias más rápido
 RUN mkdir src && echo "fn main() {}" > src/main.rs
@@ -21,6 +20,7 @@ COPY . .
 
 # Instala diesel_cli para usar en esta etapa
 RUN cargo install diesel_cli --no-default-features --features postgres
+
 # Compila la app en modo release
 RUN cargo build --release
 
@@ -30,7 +30,7 @@ FROM debian:bookworm-slim
 # Instala solo lo necesario para correr la app y conectarse a Postgres
 RUN apt-get update && apt-get install -y libpq-dev ca-certificates && rm -rf /var/lib/apt/lists/*
 
-# Crea usuario no root por seguridad (opcional pero recomendado)
+# Crea usuario no root
 RUN useradd -m appuser
 
 WORKDIR /app
@@ -39,14 +39,17 @@ WORKDIR /app
 COPY --from=builder /app/target/release/recursos_humanos_back .
 COPY --from=builder /app/migrations ./migrations
 
-# Copia el binario diesel para ejecutar migraciones
+# Copia el binario diesel
 COPY --from=builder /usr/local/cargo/bin/diesel /usr/local/bin/diesel
+
+# Ajusta permisos (después de copiar el ejecutable)
+RUN chmod +x recursos_humanos_back && chown appuser:appuser recursos_humanos_back
 
 # Usa usuario no root
 USER appuser
 
-# Expon el puerto (solo informativo)
+# Expon el puerto (informativo)
 EXPOSE 4500
 
-# Comando por defecto (puede sobreescribirse en docker-compose)
-CMD ["./recursos_humanos_back"]
+# Comando por defecto (puedes cambiarlo luego si quieres iniciar la app directamente)
+CMD ["sh", "-c", "diesel migration run && ./recursos_humanos_back"]

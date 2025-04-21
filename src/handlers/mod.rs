@@ -1,2 +1,1 @@
-pub mod user_handler;
-pub mod welcome;
+pub mod user_handlers;

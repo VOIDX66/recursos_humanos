@@ -1,16 +1,16 @@
 // src/main.rs
 pub mod responses;
 pub mod state;
-pub mod handlers;
+pub mod controllers;
 pub mod services;
 pub mod models;
 pub mod schema;
-pub mod patterns;
+pub mod handlers;
 
 use actix_web::{web, App, HttpServer};
-use crate::handlers::user_handler::user_routes;
+use crate::controllers::user_controllers::user_routes;
 use crate::state::app_state::{get_db_pool, AppState};
-use crate::handlers::welcome::welcome;
+use crate::services::welcome::welcome;
 use std::env;
 use log::{info, error};
 
