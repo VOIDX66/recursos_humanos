@@ -1,59 +1,62 @@
-use actix_web::{web, App, HttpServer, Responder};
-use tokio_postgres::{Client, NoTls};
-use dotenv::dotenv;
+// src/main.rs
+pub mod responses;
+pub mod state;
+pub mod handlers;
+pub mod services;
+pub mod models;
+pub mod schema;
+pub mod patterns;
+
+use actix_web::{web, App, HttpServer};
+use crate::handlers::user_handler::user_routes;
+use crate::state::app_state::{get_db_pool, AppState};
+use crate::handlers::welcome::welcome;
 use std::env;
-use crate::responses::json_response; // Importamos el módulo de respuestas
-
-// Importar el módulo de respuestas
-mod responses;
-
-async fn get_conn() -> impl Responder {
-    // Cargar las variables de entorno desde el archivo .env
-    dotenv().ok();
-    
-    // Obtener la URL de la base de datos desde las variables de entorno
-    let db_url = env::var("DATABASE_URL")
-        .expect("DATABASE_URL not set in .env file");
-
-    // Establecer la conexión de manera asincrónica a la base de datos
-    let (client, connection) =
-        tokio_postgres::connect(&db_url, NoTls)
-            .await
-            .expect("Error connecting to database");
-
-    // Mostrar mensaje en la consola indicando que se conectó exitosamente
-    println!("Conexión exitosa a la base de datos!");
-        
-    let _ : Client = client;
-    // Aquí realizarías las operaciones con `client`, como consultas y operaciones en la base de datos
-
-    // Si necesitas manejar la conexión de manera paralela, puedes hacerlo de la siguiente forma
-    tokio::spawn(async move {
-        if let Err(e) = connection.await {
-            eprintln!("Connection error: {}", e);
-        }
-    });
-
-    // Responder con un mensaje en formato JSON utilizando el código de estado 200 (OK)
-    json_response("Conexión exitosa a la base de datos desde .env", 200)
-}
+use log::{info, error};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    // Cargar las variables de entorno desde el archivo .env
-    dotenv().ok();
-
-    // Obtener el puerto desde las variables de entorno, si no está definido usar 8080 por defecto
-    let port = env::var("PORT").unwrap_or_else(|_| "4500".to_string());
-    //let host = env::var("DB_HOST").unwrap_or_else(|_| "localhost".to_string());
-    println!("Starting server on http://localhost:{port}");
-
+    // Inicializar el logger
+    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
+    
+    dotenv::dotenv().ok();
+    
+    // Obtener el puerto desde las variables de entorno
+    let port = env::var("PORT").unwrap_or_else(|_| "8080".to_string());
+    
+    // Crear el pool de conexiones a la base de datos
+    let pool = match get_db_pool().await {
+        Ok(pool) => {
+            info!("✅ Database connection pool established successfully");
+            pool
+        },
+        Err(e) => {
+            error!("❌ Failed to create database connection pool: {}", e);
+            return Err(std::io::Error::new(std::io::ErrorKind::Other, "Database connection failed"));
+        }
+    };
+    
+    // Crear el estado de la aplicación con el pool
+    let app_state = web::Data::new(AppState::new(pool));
+    
+    info!("🚀 Starting server on http://0.0.0.0:{}", port);
+    
     // Iniciar el servidor Actix Web
-    HttpServer::new(|| {
+    HttpServer::new(move || {
         App::new()
-            .route("/", web::get().to(get_conn)) // Ruta para probar la conexión
+            .app_data(app_state.clone())
+            .route("/", web::get().to(welcome)) // Ruta de bienvenida
+            .configure(user_routes)  // Rutas de usuario
     })
-    .bind(format!("0.0.0.0:{}", port))?  // Usar el puerto configurado en .env
+    .bind(format!("0.0.0.0:{}", port))
+    .map_err(|e| {
+        error!("❌ Failed to bind to port {}: {}", port, e);
+        e
+    })?
     .run()
     .await
+    .map_err(|e| {
+        error!("❌ Server error: {}", e);
+        e
+    })
 }
