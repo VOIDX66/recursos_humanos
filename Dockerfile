@@ -1,55 +1,52 @@
-# Etapa de compilación
+# Etapa 1: Compilación
 FROM rust:slim as builder
 
-# Instala dependencias del sistema
-RUN apt-get update && apt-get install -y libpq-dev pkg-config build-essential
+# Crear un directorio para la aplicación
+WORKDIR /usr/src/app
 
-# Crea directorio para el proyecto
-WORKDIR /app
+# Instalar dependencias del sistema necesarias para compilar Diesel
+RUN apt-get update && apt-get install -y libpq-dev pkg-config
 
-# Copia archivos de configuración y dependencias primero (mejor uso de cache)
-COPY Cargo.toml Cargo.lock ./
-
-# Crea un dummy para compilar dependencias más rápido
-RUN mkdir src && echo "fn main() {}" > src/main.rs
-RUN cargo build --release
-RUN rm -r src
-
-# Copia el resto del código
-COPY . .
-
-# Instala diesel_cli para usar en esta etapa
+# Instalar Diesel CLI
 RUN cargo install diesel_cli --no-default-features --features postgres
 
-# Compila la app en modo release
+# Copiar el proyecto completo
+COPY . .
+
+# Compilar la aplicación en modo release
 RUN cargo build --release
 
-# Etapa final: imagen más liviana
+# Etapa 2: Producción
 FROM debian:bookworm-slim
 
-# Instala solo lo necesario para correr la app y conectarse a Postgres
-RUN apt-get update && apt-get install -y libpq-dev ca-certificates && rm -rf /var/lib/apt/lists/*
+# Instalar dependencias necesarias en tiempo de ejecución
+RUN apt-get update && apt-get install -y \
+    libpq5 \
+    ca-certificates \
+    postgresql-client && \
+    rm -rf /var/lib/apt/lists/*
 
-# Crea usuario no root
-RUN useradd -m appuser
-
+# Crear directorio para la app
 WORKDIR /app
 
-# Copia ejecutable y migraciones desde el builder
-COPY --from=builder /app/target/release/recursos_humanos_back .
-COPY --from=builder /app/migrations ./migrations
+# Copiar binario de la app y Diesel CLI desde el builder
+COPY --from=builder /usr/src/app/target/release/recursos_humanos_back /usr/local/bin/
+COPY --from=builder /usr/local/cargo/bin/diesel /usr/local/bin/
 
-# Copia el binario diesel
-COPY --from=builder /usr/local/cargo/bin/diesel /usr/local/bin/diesel
+# Copiar migraciones y config de Diesel
+COPY --from=builder /usr/src/app/migrations /app/migrations
+COPY --from=builder /usr/src/app/diesel.toml /app/
 
-# Ajusta permisos (después de copiar el ejecutable)
-RUN chmod +x recursos_humanos_back && chown appuser:appuser recursos_humanos_back
-
-# Usa usuario no root
-USER appuser
-
-# Expon el puerto (informativo)
+# Exponer puerto
 EXPOSE 4500
 
-# Comando por defecto (puedes cambiarlo luego si quieres iniciar la app directamente)
-CMD ["sh", "-c", "diesel migration run && ./recursos_humanos_back"]
+# Usar bash como entrypoint y ejecutar comandos Diesel y app
+ENTRYPOINT bash -c '\
+    echo "Esperando a que PostgreSQL esté listo..." && \
+    until psql "$DATABASE_URL" -c "\q" >/dev/null 2>&1; do \
+        echo "Esperando..." && sleep 1; \
+    done && \
+    echo "PostgreSQL listo, ejecutando migraciones..." && \
+    diesel migration run --migration-dir ./migrations && \
+    echo "Iniciando aplicación..." && \
+    exec recursos_humanos_back'

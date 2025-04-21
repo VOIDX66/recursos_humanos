@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 actix-web = "4.10.2"           # Servidor web
+actix-cors = "0.7.1"
 dotenv = "0.15.0"             # Para leer el archivo .env
 diesel = { version = "2.2.8", features = ["postgres","r2d2"] }  # ORM para PostgreSQL
 tokio = { version = "1.44.0", features = ["full"] }  # Necesario para el async runtime
