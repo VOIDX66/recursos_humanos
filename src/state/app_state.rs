@@ -3,14 +3,18 @@ use tokio_postgres::{NoTls, Config};
 use std::env;
 use dotenv::dotenv;
 use std::str::FromStr;
+use validator::Validate;
 
+#[derive(Validate)]
 pub struct AppState {
     pub pool: Pool,
+    #[validate(length(min = 1, message = "JWT Secret is required"))]
+    pub jwt_secret: String,  // Añadimos la validación de que no esté vacío
 }
 
 impl AppState {
-    pub fn new(pool: Pool) -> Self {
-        AppState { pool }
+    pub fn new(pool: Pool, jwt_secret: String) -> Self {
+        AppState { pool, jwt_secret}
     }
 }
 

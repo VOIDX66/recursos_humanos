@@ -10,7 +10,10 @@ pub enum AppError {
     UserCreationError(String),
     UserNotFoundError(String),
     ValidationError(String),
-    InternalServerError(String)
+    InternalServerError(String),
+    AuthenticationError(String),
+    NotFoundError(String),
+    Unauthorized(String)
     // Puedes añadir más tipos de errores según necesites
 }
 
@@ -23,6 +26,9 @@ impl fmt::Display for AppError {
             AppError::UserNotFoundError(msg) => write!(f, "User not found: {}", msg),
             AppError::ValidationError(msg) => write!(f, "Validation error: {}", msg),
             AppError::InternalServerError(msg) => write!(f, "Internal Server error: {}", msg),
+            AppError::AuthenticationError(msg) => write!(f, "Authentication Error: {}", msg),
+            AppError::NotFoundError(msg) => write!(f, "Not Found Error: {}", msg),
+            AppError::Unauthorized(msg) => write!(f, "Unauthorized: {}", msg) 
         }
     }
 }
@@ -79,6 +85,26 @@ impl ResponseError for AppError {
                     "message": msg
                 }))
             }
+            AppError::AuthenticationError(msg) => {
+                // Aquí devolvemos el error de autenticación con un HTTP 401 Unauthorized
+                HttpResponse::Unauthorized().json(json!({
+                    "error": "AuthenticationError",
+                    "message": msg
+                }))
+            }
+            AppError::NotFoundError(msg) => {
+                HttpResponse::NotFound().json(json!({
+                    "error": "NotFoundError",
+                    "message": msg
+                }))
+            }
+            AppError::Unauthorized(msg) => {
+                HttpResponse::Unauthorized().json(json!({
+                    "error": "Unauthorized",
+                    "message": msg
+                }))
+            }
+                
         }
     }
 }

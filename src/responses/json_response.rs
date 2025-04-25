@@ -13,3 +13,8 @@ pub fn json_response(message: &str, status_code: u16) -> HttpResponse {
     HttpResponse::build(actix_web::http::StatusCode::from_u16(status_code).unwrap())
         .json(response)
 }
+
+#[derive(serde::Serialize)]
+pub struct AuthResponse {
+    pub token: String,
+}
