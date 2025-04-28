@@ -12,18 +12,33 @@ pub async fn create_user(
     admin_role: Option<String>,  // Este parámetro representaría el rol del usuario autenticado
 ) -> Result<UserResponse, AppError> {
     // 1. Verificar si el id_number ya existe
-    let check_stmt = conn
+    let check_id_stmt = conn
         .prepare("SELECT 1 FROM users WHERE id_number = $1")
         .await
-        .map_err(|_| AppError::DatabaseError("Failed to prepare check query".into()))?;
+        .map_err(|_| AppError::DatabaseError("Failed to prepare ID check query".into()))?;
 
-    let exists = conn
-        .query_opt(&check_stmt, &[&new_user.id_number])
+    let id_exists = conn
+        .query_opt(&check_id_stmt, &[&new_user.id_number])
         .await
-        .map_err(|_| AppError::DatabaseError("Failed to execute check query".into()))?;
+        .map_err(|_| AppError::DatabaseError("Failed to execute ID check query".into()))?;
 
-    if exists.is_some() {
+    if id_exists.is_some() {
         return Err(AppError::ValidationError("ID number already exists".into()));
+    }
+
+    // 1.2 Verificar si el email ya existe
+    let check_email_stmt = conn
+        .prepare("SELECT 1 FROM users WHERE email = $1")
+        .await
+        .map_err(|_| AppError::DatabaseError("Failed to prepare email check query".into()))?;
+
+    let email_exists = conn
+        .query_opt(&check_email_stmt, &[&new_user.email])
+        .await
+        .map_err(|_| AppError::DatabaseError("Failed to execute email check query".into()))?;
+
+    if email_exists.is_some() {
+        return Err(AppError::ValidationError("Email already exists".into()));
     }
 
     // 2. Si el rol es uno de los roles restringidos (analista, evaluador, instructor),
@@ -85,7 +100,6 @@ pub async fn create_user(
         Err(AppError::UserCreationError("Failed to insert user".into()))
     }
 }
-
 
 pub async fn register_user(
     conn: &Client,
