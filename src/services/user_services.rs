@@ -247,3 +247,69 @@ pub async fn get_user_profile(
 
     Ok(user_response)
 }
+
+pub async fn update_rol(
+    conn: &Client,
+    current_user_id: i32,     // ID del usuario autenticado, obtenido del claims.user_id
+    target_id_number: &str,    // id_number del usuario que queremos modificar
+    new_rol: &str,
+) -> Result<UserResponse, AppError> {
+    // 1. Obtener el id_number del usuario actual (quien hace el request)
+    let stmt = conn
+        .prepare("SELECT id_number FROM users WHERE user_id = $1")
+        .await
+        .map_err(|_| AppError::DatabaseError("Failed to prepare query to get current user's id_number".into()))?;
+
+    let row = conn
+        .query_one(&stmt, &[&current_user_id])
+        .await
+        .map_err(|_| AppError::DatabaseError("Failed to execute query to get current user's id_number".into()))?;
+
+    let current_id_number: String = row.get("id_number");
+
+    // 2. No permitir que un usuario cambie su propio rol
+    if current_id_number == target_id_number {
+        return Err(AppError::Unauthorized("Cannot modify your own role".into()));
+    }
+
+    // 3. Verificar que el usuario a actualizar exista
+    let select_stmt = conn
+        .prepare("SELECT user_id FROM users WHERE id_number = $1")
+        .await
+        .map_err(|_| AppError::DatabaseError("Failed to prepare select user query".into()))?;
+
+    let user = conn
+        .query_opt(&select_stmt, &[&target_id_number])
+        .await
+        .map_err(|_| AppError::DatabaseError("Failed to execute select user query".into()))?;
+
+    if user.is_none() {
+        return Err(AppError::NotFoundError(format!("User with id_number {} not found", target_id_number)));
+    }
+
+    // 4. Actualizar el rol
+    let update_stmt = conn
+        .prepare(
+            "UPDATE users SET rol = $1 WHERE id_number = $2
+             RETURNING user_id, id_number, name, lastname, email, rol"
+        )
+        .await
+        .map_err(|_| AppError::DatabaseError("Failed to prepare update role query".into()))?;
+
+    let row = conn
+        .query_one(&update_stmt, &[&new_rol, &target_id_number])
+        .await
+        .map_err(|_| AppError::DatabaseError("Failed to execute update role query".into()))?;
+
+    // 5. Construir y devolver el UserResponse actualizado
+    let updated_user = UserResponse {
+        user_id: row.get("user_id"),
+        id_number: row.get("id_number"),
+        name: row.get("name"),
+        lastname: row.get("lastname"),
+        email: row.get("email"),
+        rol: row.get("rol"),
+    };
+
+    Ok(updated_user)
+}

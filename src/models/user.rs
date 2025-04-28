@@ -74,3 +74,11 @@ pub struct Claims {
     pub exp: usize,       // Fecha de expiración (timestamp UNIX en segundos)
 }
 
+#[derive(Debug, Deserialize, Validate)]
+pub struct UpdateRolData {
+    #[validate(length(min = 6, max = 12, message = "ID number must be between 6 and 12 characters"))]
+    pub id_number: String,
+
+    #[validate(custom(function = "validate_role"))]
+    pub new_rol: String,
+}

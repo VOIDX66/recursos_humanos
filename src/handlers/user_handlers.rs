@@ -1,6 +1,6 @@
 use actix_web::{web, Responder, Result, HttpMessage, HttpRequest};
 use crate::services::user_services;
-use crate::models::user::{NewUser, LoginData, Claims};
+use crate::models::user::{NewUser, LoginData, Claims, UpdateRolData};
 use crate::state::app_state::AppState;
 use crate::responses::{errors::AppError, json_response::AuthResponse};
 use validator::Validate;
@@ -106,5 +106,32 @@ pub async fn profile_handler(
     match user_services::get_user_profile(&conn, &claims.sub).await {
         Ok(profile) => Ok(web::Json(profile)),
         Err(e) => Err(AppError::NotFoundError(format!("Error fetching profile: {}", e)).into()),
+    }
+}
+
+pub async fn update_rol_handler(
+    update_data: web::Json<UpdateRolData>,
+    app_state: web::Data<AppState>,
+    req: HttpRequest,
+) -> Result<impl Responder, AppError> {
+    // Extraer los claims del request
+    let claims = req.extensions().get::<Claims>().cloned().ok_or_else(|| {
+        AppError::Unauthorized("Unauthorized: Missing claims".into())
+    })?;
+
+    // Solo administradores pueden cambiar roles
+    if claims.rol != "admin" {
+        return Err(AppError::Unauthorized("Only admins can update user roles".into()));
+    }
+
+    // Obtener conexión de la base de datos
+    let conn = app_state.pool.get().await.map_err(|e| {
+        AppError::InternalServerError(format!("Failed to get database connection: {}", e))
+    })?;
+
+    // Llamar al servicio que actualiza el rol
+    match user_services::update_rol(&conn, claims.user_id, &update_data.id_number, &update_data.new_rol).await {
+        Ok(updated_user) => Ok(web::Json(updated_user)),
+        Err(e) => Err(AppError::UpdateError(format!("Failed to update user role: {}", e)).into()),
     }
 }

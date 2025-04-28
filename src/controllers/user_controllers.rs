@@ -1,5 +1,5 @@
 use actix_web::web;
-use crate::handlers::user_handlers::{create_user_handler, login_user_handler, profile_handler, register_user_handler};
+use crate::handlers::user_handlers::{create_user_handler, login_user_handler, profile_handler, register_user_handler, update_rol_handler};
 
 // Definir las rutas públicas
 pub fn user_routes(cfg: &mut web::ServiceConfig) {
@@ -11,4 +11,5 @@ pub fn user_routes(cfg: &mut web::ServiceConfig) {
 pub fn protected_user_routes(cfg: &mut web::ServiceConfig) {
     cfg.route("/auth/me", web::get().to(profile_handler));
     cfg.route("/auth/create_user", web::post().to(create_user_handler));
+    cfg.route("/auth/update_rol", web::put().to(update_rol_handler));
 }

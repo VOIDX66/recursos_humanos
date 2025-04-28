@@ -1,4 +1,5 @@
 use actix_web::{HttpResponse, ResponseError};
+//use diesel::dsl::Update;
 use std::error::Error as StdError;
 use std::fmt;
 use tokio_postgres::Error as PgError;
@@ -13,7 +14,8 @@ pub enum AppError {
     InternalServerError(String),
     AuthenticationError(String),
     NotFoundError(String),
-    Unauthorized(String)
+    Unauthorized(String),
+    UpdateError(String)
     // Puedes añadir más tipos de errores según necesites
 }
 
@@ -28,7 +30,9 @@ impl fmt::Display for AppError {
             AppError::InternalServerError(msg) => write!(f, "Internal Server error: {}", msg),
             AppError::AuthenticationError(msg) => write!(f, "Authentication Error: {}", msg),
             AppError::NotFoundError(msg) => write!(f, "Not Found Error: {}", msg),
-            AppError::Unauthorized(msg) => write!(f, "Unauthorized: {}", msg) 
+            AppError::Unauthorized(msg) => write!(f, "Unauthorized: {}", msg),
+            AppError::UpdateError(msg) => write!(f, "UpdateError: {}", msg)
+
         }
     }
 }
@@ -104,6 +108,12 @@ impl ResponseError for AppError {
                     "message": msg
                 }))
             }
+            AppError::UpdateError(msg) => {
+                HttpResponse::Conflict().json(json!({
+                    "error": "UpdateError",
+                    "message": msg
+                }))
+            } 
                 
         }
     }
