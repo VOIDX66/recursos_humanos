@@ -1,23 +1,23 @@
-pub mod responses;
-pub mod state;
-pub mod controllers;
-pub mod services;
-pub mod models;
-pub mod schema;
 pub mod handlers;
 pub mod middleware;
+pub mod models;
+pub mod responses;
+pub mod routes;
+pub mod schema;
+pub mod services;
+pub mod state;
 
-use actix_web::{web, App, HttpServer, http::header};
 use actix_cors::Cors;
+use actix_web::{App, HttpServer, http::header, web};
 use actix_web_httpauth::middleware::HttpAuthentication;
-use controllers::user_controllers::protected_user_routes;
-use log::{info, error};
+use log::{error, info};
+use routes::user_routes::protected_user_routes;
 use std::env;
 
-use crate::controllers::user_controllers::user_routes;
-use crate::state::app_state::{get_db_pool, AppState};
-use crate::services::welcome::welcome;
 use crate::middleware::auth_middleware::validator;
+use crate::routes::user_routes::user_routes;
+use crate::services::welcome::welcome;
+use crate::state::app_state::{AppState, get_db_pool};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -37,7 +37,10 @@ async fn main() -> std::io::Result<()> {
         }
         Err(e) => {
             error!("❌ Failed to create database connection pool: {}", e);
-            return Err(std::io::Error::new(std::io::ErrorKind::Other, "DB pool init failed"));
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                "DB pool init failed",
+            ));
         }
     };
     let app_state = web::Data::new(AppState::new(pool, jwt_secret.clone()));
@@ -59,7 +62,7 @@ async fn main() -> std::io::Result<()> {
             .service(
                 web::scope("/api")
                     .wrap(HttpAuthentication::bearer(validator))
-                    .configure(protected_user_routes)
+                    .configure(protected_user_routes),
             )
     })
     .bind(("0.0.0.0", port.parse::<u16>().unwrap()))?
