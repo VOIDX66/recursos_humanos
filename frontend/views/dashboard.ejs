@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Redireccionando...</title>
+  <script>
+    async function redirectByRole() {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('No tienes sesión iniciada');
+        window.location.href = '/login';
+        return;
+      }
+
+      try {
+        const res = await fetch('http://localhost:4500/api/auth/me', {
+          method: 'GET',
+          headers: {
+            'Authorization': 'Bearer ' + token
+          }
+        });
+
+        if (!res.ok) {
+          localStorage.removeItem('token');
+          window.location.href = '/login';
+          return;
+        }
+
+        const data = await res.json();
+        const validRoles = ['admin', 'analista', 'postulante', 'evaluador', 'instructor'];
+
+        if (validRoles.includes(data.role)) {
+          window.location.href = `/dashboard_${data.role}`;
+        } else {
+          alert('Rol desconocido. Contacta con el administrador.');
+          localStorage.removeItem('token');
+          window.location.href = '/login';
+        }
+      } catch (err) {
+        alert('Error de conexión. Intenta más tarde.');
+      }
+    }
+
+    window.onload = redirectByRole;
+  </script>
+</head>
+<body>
+  <p>Redirigiendo según tu rol...</p>
+</body>
+</html>

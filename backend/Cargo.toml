@@ -1,0 +1,28 @@
+[package]
+name = "recursos_humanos_back"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+actix-web = "4.11.0" # Servidor web
+actix-cors = "0.7.1"
+actix-service = "2.0.3"
+dotenv = "0.15.0" # Para leer el archivo .env
+diesel = { version = "2.2.10", features = [
+    "postgres",
+    "r2d2",
+] } # ORM para PostgreSQL
+tokio = { version = "1.44.0", features = ["full",] }
+tokio-postgres = { version = "0.7.13", features = ["with-uuid-1"] }
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
+deadpool-postgres = { version = "0.14.1", features = ["rt_tokio_1"] }
+log = "0.4"
+env_logger = "0.11.8"
+chrono = "0.4.41"
+bcrypt = "0.17.0"
+regex = "1.11.1"
+validator = { version = "0.20.0", features = ["derive"] }
+jsonwebtoken = "9.3.1"
+futures-util = "0.3.31"
+actix-web-httpauth = "0.8.2"
