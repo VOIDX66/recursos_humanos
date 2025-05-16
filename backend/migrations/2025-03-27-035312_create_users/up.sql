@@ -8,8 +8,8 @@ CREATE TABLE users (
     email VARCHAR(100) NOT NULL UNIQUE, -- Email también único
     password VARCHAR NOT NULL, -- Idealmente encriptado (bcrypt, argon2, etc.)
     role VARCHAR(20) NOT NULL, -- Puede ser: "admin", "evaluador", etc.
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Si frecuentemente filtras o haces JOIN por rol (por ejemplo: obtener todos los usuarios "analyst")

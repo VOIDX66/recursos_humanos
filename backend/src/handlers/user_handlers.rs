@@ -1,6 +1,6 @@
 use crate::models::user::{Claims, LoginData, NewUser, UpdateRolData};
 use crate::responses::{errors::AppError, json_response::AuthResponse};
-use crate::services::user_services;
+use crate::services::auth_services;
 use crate::state::app_state::AppState;
 use actix_web::{HttpMessage, HttpRequest, Responder, Result, web};
 use validator::Validate;
@@ -42,7 +42,7 @@ pub async fn create_user_handler(
     }
 
     // Llamar al servicio para crear el usuario
-    match user_services::create_user(
+    match auth_services::create_user(
         &conn,
         new_user.into_inner(),
         claims.as_ref().map(|c| c.role.clone()),
@@ -72,7 +72,7 @@ pub async fn register_user_handler(
     })?;
 
     // Llamar al servicio para crear el usuario, sin rol de admin ya que es un registro público
-    match user_services::create_user(&conn, new_user.into_inner(), None).await {
+    match auth_services::create_user(&conn, new_user.into_inner(), None).await {
         Ok(user) => Ok(web::Json(user)),
         Err(e) => Err(AppError::UserCreationError(format!("Error creating user: {}", e)).into()),
     }
@@ -94,7 +94,7 @@ pub async fn login_user_handler(
 
     // Llamar al servicio de login (este servicio gestionará la validación de la contraseña y la generación del token)
     let token =
-        user_services::login_user(&conn, login_data.into_inner(), &app_state.jwt_secret).await?;
+        auth_services::login_user(&conn, login_data.into_inner(), &app_state.jwt_secret).await?;
 
     // Devolver el token de autenticación
     Ok(web::Json(AuthResponse { token }))
@@ -117,7 +117,7 @@ pub async fn profile_handler(
     })?;
 
     // Obtener información completa del perfil usando el ID del usuario en los claims
-    match user_services::get_user_profile(&conn, &claims.sub).await {
+    match auth_services::get_user_profile(&conn, &claims.sub).await {
         Ok(profile) => Ok(web::Json(profile)),
         Err(e) => Err(AppError::NotFoundError(format!("Error fetching profile: {}", e)).into()),
     }
@@ -148,7 +148,7 @@ pub async fn update_rol_handler(
     })?;
 
     // Llamar al servicio que actualiza el rol
-    match user_services::update_rol(
+    match auth_services::update_rol(
         &conn,
         &claims.user_id,
         &update_data.id_number,

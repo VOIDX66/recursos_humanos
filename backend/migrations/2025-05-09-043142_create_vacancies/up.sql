@@ -4,13 +4,13 @@ CREATE TABLE vacancies (
     title TEXT NOT NULL,
     description TEXT NOT NULL,
     requirements TEXT,
-    salary NUMERIC(10, 2),
-    opening_date DATE NOT NULL DEFAULT CURRENT_DATE,
-    closing_date DATE,
+    salary DOUBLE PRECISION,
+    opening_date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_DATE,
+    closing_date TIMESTAMPTZ,
     status VARCHAR(20) NOT NULL DEFAULT 'open',
     created_by VARCHAR NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_DATE,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_DATE,
 
     CONSTRAINT fk_created_by FOREIGN KEY (created_by) REFERENCES users(user_id) ON DELETE CASCADE
 );

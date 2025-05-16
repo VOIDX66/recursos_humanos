@@ -11,11 +11,12 @@ use actix_cors::Cors;
 use actix_web::{App, HttpServer, http::header, web};
 use actix_web_httpauth::middleware::HttpAuthentication;
 use log::{error, info};
-use routes::user_routes::protected_user_routes;
+use routes::vacancies_routes::{protected_vacancy_routes, vacancy_routes};
+use routes::auth_routes::protected_user_routes;
 use std::env;
 
 use crate::middleware::auth_middleware::validator;
-use crate::routes::user_routes::user_routes;
+use crate::routes::auth_routes::user_routes;
 use crate::services::welcome::welcome;
 use crate::state::app_state::{AppState, get_db_pool};
 
@@ -59,10 +60,12 @@ async fn main() -> std::io::Result<()> {
             // Rutas abiertas
             .route("/", web::get().to(welcome))
             .configure(user_routes)
+            .configure(vacancy_routes)
             .service(
                 web::scope("/api")
                     .wrap(HttpAuthentication::bearer(validator))
-                    .configure(protected_user_routes),
+                    .configure(protected_user_routes)
+                    .configure(protected_vacancy_routes)
             )
     })
     .bind(("0.0.0.0", port.parse::<u16>().unwrap()))?

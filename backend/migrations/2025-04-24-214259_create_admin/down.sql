@@ -2,4 +2,4 @@
 
 -- Borrar el primer usuario administrador si existe
 DELETE FROM users
-WHERE rol = 'admin' AND id_number = 'admin001';
+WHERE role = 'admin' AND id_number = 'admin001';
