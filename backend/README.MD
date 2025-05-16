@@ -1,31 +1,19 @@
-# Recursos Humanos : _**My Humane**_
-Proyecto de aplicacion web de sistema de gestión de recursos humanos.
+# Recursos Humanos: _**My Humane**_ - Backend
 
-## Pasos para ejecutar el proyecto
+Aplicación backend desarrollada en **Rust** con **Actix-web** para la gestión de recursos humanos.
 
-### 1. Clonar el repositorio
-```bash
-git clone https://github.com/VOIDX66/recursos_humanos_back.git
-```
-### 2. Navegar al directorio del proyecto
-```bash
-cd recursos_humanos-back
-```
-### 3. Construir el contenedor de Docker, recuerda que debes tener instalado docker y docker-compose
-```bash
-docker-compose build
-```
+## Descripción
 
-### 4. Levantamos el contenedor de Docker
-```bash
-docker-compose up
-```
+El backend de **My Humane** proporciona una API RESTful para el sistema de gestión de recursos humanos, incluyendo:
 
-### 4. Verificar que los contenedores están en funcionamiento
-```bash
-docker ps
-```
-### 5. Detener los contenedores
-```bash
-docker-compose down
-```
+- Gestión de usuarios y autenticación  
+- Sistema de roles (_admin_, _analista_, _postulante_, _evaluador_, _instructor_)  
+- Gestión de vacantes  
+- Aplicaciones a vacantes  
+- Evaluaciones
+
+## Requisitos previos
+
+- **Rust** (versión estable, 1.70+)  
+- **PostgreSQL** (13+)  
+- **Cargo** (incluido con Rust)
