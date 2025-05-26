@@ -1,5 +1,5 @@
 -- Your SQL goes here
-CREATE TABLE evaluations (
+CREATE TABLE IF NOT EXISTS evaluations (
     id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
     vacancy_id VARCHAR NOT NULL,                           -- La vacante asociada
     candidate_id VARCHAR NOT NULL,                         -- El postulante evaluado
@@ -15,3 +15,10 @@ CREATE TABLE evaluations (
     CONSTRAINT fk_candidate FOREIGN KEY (candidate_id) REFERENCES users(user_id) ON DELETE CASCADE,
     CONSTRAINT fk_evaluator FOREIGN KEY (evaluator_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
+
+-- Índices para acelerar búsquedas y joins comunes
+CREATE INDEX IF NOT EXISTS idx_evaluations_vacancy_id ON evaluations (vacancy_id);
+CREATE INDEX IF NOT EXISTS idx_evaluations_candidate_id ON evaluations (candidate_id);
+CREATE INDEX IF NOT EXISTS idx_evaluations_evaluator_id ON evaluations (evaluator_id);
+CREATE INDEX IF NOT EXISTS idx_evaluations_status ON evaluations (status);
+CREATE INDEX IF NOT EXISTS idx_evaluations_evaluation_date ON evaluations (evaluation_date);

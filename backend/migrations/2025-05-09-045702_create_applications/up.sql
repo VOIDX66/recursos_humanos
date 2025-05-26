@@ -1,7 +1,7 @@
 -- Your SQL goes here
 -- migrations/sql/up.sql
 
-CREATE TABLE applications (
+CREATE TABLE IF NOT EXISTS applications (
     id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
     
     user_id VARCHAR NOT NULL,
@@ -20,6 +20,6 @@ CREATE TABLE applications (
 );
 
 -- Índices útiles
-CREATE INDEX idx_applications_status ON applications(status);
-CREATE INDEX idx_applications_user ON applications(user_id);
-CREATE INDEX idx_applications_vacancy ON applications(vacancy_id);
+CREATE INDEX IF NOT EXISTS idx_applications_status ON applications(status);
+CREATE INDEX IF NOT EXISTS idx_applications_user ON applications(user_id);
+CREATE INDEX IF NOT EXISTS idx_applications_vacancy ON applications(vacancy_id);

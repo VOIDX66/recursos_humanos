@@ -1,5 +1,5 @@
 -- Your SQL goes here
-CREATE TABLE vacancies (
+CREATE TABLE IF NOT EXISTS vacancies (
     id VARCHAR PRIMARY KEY DEFAULT gen_random_uuid(),
     title TEXT NOT NULL,
     description TEXT NOT NULL,
@@ -16,13 +16,13 @@ CREATE TABLE vacancies (
 );
 
 -- Búsquedas frecuentes por estado de la vacante (ej. 'open', 'closed')
-CREATE INDEX idx_vacancies_status ON vacancies(status);
+CREATE INDEX IF NOT EXISTS idx_vacancies_status ON vacancies(status);
 
 -- Para buscar vacantes por analista/creador
-CREATE INDEX idx_vacancies_created_by ON vacancies(created_by);
+CREATE INDEX IF NOT EXISTS idx_vacancies_created_by ON vacancies(created_by);
 
 -- Para filtrar vacantes abiertas por fecha de cierre
-CREATE INDEX idx_vacancies_closing_date ON vacancies(closing_date);
+CREATE INDEX IF NOT EXISTS idx_vacancies_closing_date ON vacancies(closing_date);
 
 -- Para ordenar o buscar por salario
-CREATE INDEX idx_vacancies_salary ON vacancies(salary);
+CREATE INDEX IF NOT EXISTS idx_vacancies_salary ON vacancies(salary);

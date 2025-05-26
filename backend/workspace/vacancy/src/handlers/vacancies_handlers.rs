@@ -42,3 +42,18 @@ pub async fn get_all_vacancies_handler(
     let vacancies = vacancies_services::get_all_vacancies(&client).await?;
     Ok(web::Json(vacancies))
 }
+
+pub async fn get_vacancy_by_id_handler(
+    app_state: web::Data<AppState>,
+    vacancy_id: web::Path<String>,
+) -> Result<impl Responder, AppError> {
+    let client = app_state
+        .pool
+        .get()
+        .await
+        .map_err(|e| AppError::InternalServerError(e.to_string()))?;
+
+    let vacancy = vacancies_services::get_vacancy_by_id(&client, &vacancy_id).await?;
+
+    Ok(web::Json(vacancy))
+}

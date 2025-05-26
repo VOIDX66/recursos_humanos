@@ -89,3 +89,36 @@ pub async fn get_all_vacancies(client: &Client) -> Result<Vec<Vacancy>, AppError
 
     Ok(vacancies)
 }
+
+pub async fn get_vacancy_by_id(client: &Client, vacancy_id: &str) -> Result<Vacancy, AppError> {
+    let stmt = client
+        .prepare(
+            "SELECT id, title, description, requirements, salary, opening_date, closing_date, status, created_by, created_at, updated_at 
+             FROM vacancies WHERE id = $1",
+        )
+        .await
+        .map_err(|e| AppError::DatabaseError(format!("Failed to prepare vacancy select query: {}", e)))?;
+
+    let rows = client
+        .query(&stmt, &[&vacancy_id])
+        .await
+        .map_err(|e| AppError::DatabaseError(format!("Failed to execute vacancy select query: {}", e)))?;
+
+    if let Some(row) = rows.get(0) {
+        Ok(Vacancy {
+            id: row.get("id"),
+            title: row.get("title"),
+            description: row.get("description"),
+            requirements: row.get::<_, Option<String>>("requirements"),
+            salary: row.get::<_, Option<f64>>("salary"),
+            opening_date: row.get::<_, DateTime<Utc>>("opening_date"),
+            closing_date: row.get::<_, Option<DateTime<Utc>>>("closing_date"),
+            status: row.get("status"),
+            created_by: row.get("created_by"),
+            created_at: row.get::<_, DateTime<Utc>>("created_at"),
+            updated_at: row.get::<_, DateTime<Utc>>("updated_at"),
+        })
+    } else {
+        Err(AppError::DatabaseError(format!("Vacancy with id '{}' not found", vacancy_id)))
+    }
+}
