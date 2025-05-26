@@ -9,6 +9,7 @@ dependencies = [
  "actix-cors",
  "actix-web",
  "actix-web-httpauth",
+ "application",
  "auth",
  "contract",
  "dotenv",
@@ -337,6 +338,16 @@ dependencies = [
  "anstyle",
  "once_cell_polyfill",
  "windows-sys 0.59.0",
+]
+
+[[package]]
+name = "application"
+version = "0.1.0"
+dependencies = [
+ "actix-web",
+ "deadpool-postgres",
+ "serde_json",
+ "shared",
 ]
 
 [[package]]

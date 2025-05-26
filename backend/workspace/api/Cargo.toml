@@ -20,3 +20,4 @@ middleware = { path = "../middleware" }
 contract = { path = "../contract" }
 vacancy = { path = "../vacancy" }
 shared = { path = "../shared" }
+application = { path = "../application" }
