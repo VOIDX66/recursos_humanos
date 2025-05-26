@@ -1,0 +1,10 @@
+[workspace]
+members = [
+    "workspace/api",
+    "workspace/auth",
+    "workspace/contract",
+    "workspace/vacancy",
+    "workspace/shared",
+    "workspace/middleware"]
+
+resolver = "3"

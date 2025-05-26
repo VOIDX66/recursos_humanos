@@ -1,0 +1,22 @@
+[package]
+name = "My_humane"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+actix-web = "4"
+actix-web-httpauth = "0.8.2"
+actix-cors = "0.7.1"
+env_logger = "0.11.8"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+dotenv = "0.15"
+tokio = { version = "1", features = ["full"] }
+log = "0.4.27"
+
+# crates locales del workspace
+auth = { path = "../auth" }
+middleware = { path = "../middleware" }
+contract = { path = "../contract" }
+vacancy = { path = "../vacancy" }
+shared = { path = "../shared" }
