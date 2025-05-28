@@ -9,7 +9,7 @@ pub async fn mark_notification_as_read(
     // 1. Preparar la consulta
     let stmt = client.prepare(
         "UPDATE notifications
-         SET read = TRUE
+         SET is_read = TRUE
          WHERE id = $1"
     ).await.map_err(|e| {
         AppError::DatabaseError(format!("Error preparando UPDATE de notificación: {}", e))

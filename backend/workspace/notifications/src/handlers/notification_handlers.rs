@@ -3,31 +3,32 @@ use shared::responses::errors::AppError;
 use shared::models::user::Claims;
 use shared::state::app_state::AppState;
 use crate::services::notification_services::mark_notification_as_read;
+use shared::models::notification::MarkReadBody;
 
 pub async fn mark_notification_as_read_handler(
     req: HttpRequest,
     app_state: web::Data<AppState>,
-    path: web::Path<String>,  // Aquí recibimos el id de la notificación como String
+    body: web::Json<MarkReadBody>,
 ) -> Result<impl Responder, AppError> {
-    // 1. Extraer claims (para validar que haya usuario autenticado)
+    // ✅ 1. Verificar autenticación mediante claims
     let _ = req.extensions()
         .get::<Claims>()
         .cloned()
         .ok_or_else(|| AppError::AuthenticationError("No se encontraron los claims del usuario".to_string()))?;
 
-    // 2. Obtener el id de la notificación del path
-    let notification_id = path.into_inner();
+    // ✅ 2. Obtener el id de la notificación desde el body
+    let notification_id = &body.notification_id;
 
-    // 3. Obtener conexión a la base de datos
+    // ✅ 3. Obtener conexión a la base de datos
     let client = app_state.pool.get().await.map_err(|e| {
         AppError::InternalServerError(format!("Error obteniendo conexión a la base de datos: {}", e))
     })?;
 
-    // 4. Llamar al servicio para marcar como leída
-    mark_notification_as_read(&client, &notification_id).await?;
+    // ✅ 4. Llamar al servicio para marcar la notificación como leída
+    mark_notification_as_read(&client, notification_id).await?;
 
-    // 5. Responder con éxito simple
-    Ok(web::Json(serde_json::json!({"message": "Notificación marcada como leída"})))
+    // ✅ 5. Responder con éxito
+    Ok(web::Json(serde_json::json!({ "message": "Notificación marcada como leída" })))
 }
 
 use crate::services::notification_services::get_notifications_for_user;
