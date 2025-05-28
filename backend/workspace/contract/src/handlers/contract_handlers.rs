@@ -6,6 +6,7 @@ use shared::models::user::Claims;
 use crate::services::contract_services;
 use actix_files::NamedFile;
 use mime;
+use actix_web::http::header::{ContentDisposition, DispositionType};
 
 pub async fn generate_contract_handler(
     req: HttpRequest,
@@ -57,5 +58,9 @@ pub async fn generate_contract_handler(
     Ok(named_file
         .use_last_modified(true)
         .set_content_type(mime::APPLICATION_PDF)
+        .set_content_disposition(ContentDisposition {
+            disposition: DispositionType::Inline,
+            parameters: vec![],
+        })
         .into_response(&req))
 }
