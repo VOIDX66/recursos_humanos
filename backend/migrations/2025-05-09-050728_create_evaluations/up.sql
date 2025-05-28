@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS evaluations (
     score DOUBLE PRECISION,                               -- Calificación de la evaluación (opcional)
     status VARCHAR(20) NOT NULL DEFAULT 'pending',      -- Estado de la evaluación: pending, completed, etc.
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     
     CONSTRAINT fk_vacancy FOREIGN KEY (vacancy_id) REFERENCES vacancies(id) ON DELETE CASCADE,
     CONSTRAINT fk_candidate FOREIGN KEY (candidate_id) REFERENCES users(user_id) ON DELETE CASCADE,

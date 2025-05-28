@@ -88,12 +88,10 @@ pub async fn decide_application_and_schedule_evaluation(
     data: DecideApplicationRequest,
     evaluator_id: &str,
 ) -> Result<(), AppError> {
-    // Validar decisión (solo "pending_evaluation" o "rejected")
     if data.decision != "pending_evaluation" && data.decision != "rejected" {
         return Err(AppError::DatabaseError("Decision must be 'pending_evaluation' or 'rejected'".to_string()));
     }
 
-    // Verificar que la aplicación exista y evaluador sea dueño de la vacante
     let query = "
         SELECT a.vacancy_id, a.user_id
         FROM applications a
@@ -112,7 +110,6 @@ pub async fn decide_application_and_schedule_evaluation(
     let vacancy_id: String = row.get("vacancy_id");
     let candidate_id: String = row.get("user_id");
 
-    // Actualizar estado de la aplicación
     let update_stmt = client.prepare("UPDATE applications SET status = $1 WHERE id = $2").await.map_err(|e| {
         AppError::DatabaseError(format!("Error preparando actualización de aplicación: {}", e))
     })?;
@@ -121,7 +118,8 @@ pub async fn decide_application_and_schedule_evaluation(
         AppError::DatabaseError(format!("Error actualizando estado de aplicación: {}", e))
     })?;
 
-    // Si está pendiente de evaluación, crear evaluación para dentro de 5 días
+    let (title, message): (String, String);
+
     if data.decision == "pending_evaluation" {
         let evaluation_date = Utc::now() + Duration::days(5);
 
@@ -141,7 +139,27 @@ pub async fn decide_application_and_schedule_evaluation(
         ]).await.map_err(|e| {
             AppError::DatabaseError(format!("Error insertando evaluación: {}", e))
         })?;
+
+        title = "¡Has sido seleccionado para evaluación!".to_string();
+        message = format!(
+            "Tu aplicación ha sido preseleccionada. Tienes una evaluación programada para el día {}.",
+            evaluation_date.format("%d/%m/%Y a las %H:%M")
+        );
+    } else {
+        title = "Aplicación rechazada".to_string();
+        message = "Gracias por postularte. En esta ocasión no fuiste seleccionado, pero sigue intentándolo.".to_string();
     }
+
+    let insert_notif_stmt = client.prepare("
+        INSERT INTO notifications (user_id, title, message)
+        VALUES ($1, $2, $3)
+    ").await.map_err(|e| {
+        AppError::DatabaseError(format!("Error preparando notificación: {}", e))
+    })?;
+
+    client.execute(&insert_notif_stmt, &[&candidate_id, &title, &message]).await.map_err(|e| {
+        AppError::DatabaseError(format!("Error insertando notificación: {}", e))
+    })?;
 
     Ok(())
 }

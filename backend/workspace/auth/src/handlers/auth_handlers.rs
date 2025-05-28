@@ -162,3 +162,29 @@ pub async fn update_rol_handler(
         Err(e) => Err(AppError::UpdateError(format!("Failed to update user role: {}", e)).into()),
     }
 }
+
+pub async fn get_all_users_handler(
+    req: HttpRequest,
+    app_state: web::Data<AppState>,
+) -> Result<impl Responder, AppError> {
+    // 1. Extraer claims del request
+    let claims = req.extensions()
+        .get::<Claims>()
+        .cloned()
+        .ok_or_else(|| AppError::AuthenticationError("No se encontraron los claims del usuario".to_string()))?;
+
+    // 2. Validar que el rol sea admin
+    if claims.role != "admin" {
+        return Err(AppError::Unauthorized("Solo los administradores pueden ver todos los usuarios".to_string()));
+    }
+
+    // 3. Obtener conexión a la base de datos
+    let client = app_state.pool.get().await
+        .map_err(|e| AppError::InternalServerError(format!("Error al obtener conexión a BD: {}", e)))?;
+
+    // 4. Obtener lista de usuarios
+    let users = auth_services::get_all_users(&client).await?;
+
+    // 5. Responder con JSON
+    Ok(web::Json(users))
+}

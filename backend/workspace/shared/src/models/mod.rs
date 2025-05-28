@@ -3,3 +3,4 @@ pub mod vacancy;
 pub mod contract;
 pub mod application;
 pub mod evaluations;
+pub mod notification;

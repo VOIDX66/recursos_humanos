@@ -13,6 +13,7 @@ pub struct EvaluationResponse {
 
 #[derive(Debug, Deserialize)]
 pub struct GradeEvaluationInput {
+    pub evaluation_id: String,
     pub feedback: String,
     pub score: f64,
 }

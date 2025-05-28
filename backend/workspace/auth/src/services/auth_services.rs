@@ -321,3 +321,31 @@ pub async fn update_rol(
 
     Ok(updated_user)
 }
+
+pub async fn get_all_users(conn: &Client) -> Result<Vec<UserResponse>, AppError> {
+    let stmt = conn
+        .prepare(
+            "SELECT user_id, id_number, name, lastname, email, role FROM users WHERE role != 'admin' ORDER BY created_at DESC"
+        )
+        .await
+        .map_err(|e| AppError::DatabaseError(format!("Error preparando query: {}", e)))?;
+
+    let rows = conn
+        .query(&stmt, &[])
+        .await
+        .map_err(|e| AppError::DatabaseError(format!("Error ejecutando query: {}", e)))?;
+
+    let users = rows
+        .into_iter()
+        .map(|row| UserResponse {
+            user_id: row.get("user_id"),
+            id_number: row.get("id_number"),
+            name: row.get("name"),
+            lastname: row.get("lastname"),
+            email: row.get("email"),
+            role: row.get("role"),
+        })
+        .collect();
+
+    Ok(users)
+}

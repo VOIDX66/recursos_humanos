@@ -4,6 +4,8 @@ use shared::responses::errors::AppError;
 use shared::models::contract::ContractQuery;
 use shared::models::user::Claims;
 use crate::services::contract_services;
+use actix_files::NamedFile;
+use mime;
 
 pub async fn generate_contract_handler(
     req: HttpRequest,
@@ -48,5 +50,12 @@ pub async fn generate_contract_handler(
     ).await?;
 
     // ✅ 7. Respuesta
-    Ok(web::Json(serde_json::json!({"message": "Contrato generado correctamente"})))
+    let named_file = NamedFile::open_async(&salida_pdf_path)
+        .await
+        .map_err(|e| AppError::InternalServerError(format!("No se pudo abrir el PDF generado: {}", e)))?;
+
+    Ok(named_file
+        .use_last_modified(true)
+        .set_content_type(mime::APPLICATION_PDF)
+        .into_response(&req))
 }

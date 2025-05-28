@@ -22,3 +22,4 @@ vacancy = { path = "../vacancy" }
 shared = { path = "../shared" }
 application = { path = "../application" }
 evaluation = { path = "../evaluation" }
+notifications = { path = "../notifications" }
