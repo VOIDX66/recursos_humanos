@@ -7,10 +7,19 @@ pub async fn get_evaluations_for_evaluator(
     evaluator_id: &str,
 ) -> Result<Vec<EvaluationResponse>, AppError> {
     let stmt = client.prepare("
-        SELECT id, vacancy_id, candidate_id, evaluation_date, feedback, score, status
-        FROM evaluations
-        WHERE evaluator_id = $1
-        ORDER BY evaluation_date DESC
+        SELECT 
+            e.id, 
+            e.vacancy_id, 
+            e.candidate_id, 
+            u.id_number, 
+            e.evaluation_date, 
+            e.feedback, 
+            e.score, 
+            e.status
+        FROM evaluations e
+        JOIN users u ON u.id = e.candidate_id
+        WHERE e.evaluator_id = $1
+        ORDER BY e.evaluation_date DESC;
     ").await.map_err(|e| {
         AppError::DatabaseError(format!("Error preparando consulta de evaluaciones: {}", e))
     })?;
@@ -23,6 +32,7 @@ pub async fn get_evaluations_for_evaluator(
         id: row.get("id"),
         vacancy_id: row.get("vacancy_id"),
         candidate_id: row.get("candidate_id"),
+        id_number : row.get("id_number"),
         evaluation_date: row.get::<_, chrono::DateTime<chrono::Utc>>("evaluation_date").to_rfc3339(),
         feedback: row.get("feedback"),
         score: row.get("score"),

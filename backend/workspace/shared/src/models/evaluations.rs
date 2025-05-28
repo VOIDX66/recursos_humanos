@@ -5,6 +5,7 @@ pub struct EvaluationResponse {
     pub id: String,
     pub vacancy_id: String,
     pub candidate_id: String,
+    pub id_number: String,
     pub evaluation_date: String,
     pub feedback: Option<String>,
     pub score: Option<f64>,
