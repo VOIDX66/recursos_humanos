@@ -1,5 +1,5 @@
 //use crate::models::user::{Claims, LoginData, NewUser, UpdateRolData};
-use shared::models::user::{Claims, LoginData, NewUser, UpdateRolData};
+use shared::models::user::{Claims, LoginData, NewUser, UpdateRolData, DeleteUserPayload};
 //use crate::responses::{errors::AppError, json_response::AuthResponse};
 use shared::responses::{errors::AppError, json_response::AuthResponse};
 use crate::services::auth_services;
@@ -187,4 +187,40 @@ pub async fn get_all_users_handler(
 
     // 5. Responder con JSON
     Ok(web::Json(users))
+}
+
+pub async fn delete_user_handler(
+    body: web::Json<DeleteUserPayload>,
+    app_state: web::Data<AppState>,
+    req: HttpRequest,
+) -> Result<impl Responder, AppError> {
+    let target_user_id = &body.user_id;
+
+    // Extraer los claims del request
+    let claims = req
+        .extensions()
+        .get::<Claims>()
+        .cloned()
+        .ok_or_else(|| AppError::Unauthorized("Unauthorized: Missing claims".into()))?;
+
+    // Solo administradores pueden eliminar usuarios
+    if claims.role != "admin" {
+        return Err(AppError::Unauthorized(
+            "Only admins can delete users".into(),
+        ));
+    }
+
+    // Obtener conexión de la base de datos
+    let conn = app_state.pool.get().await.map_err(|e| {
+        AppError::InternalServerError(format!("Failed to get database connection: {}", e))
+    })?;
+
+    // Llamar al servicio de eliminación
+    auth_services::delete_user(&conn, &claims.user_id, target_user_id)
+        .await
+        .map_err(|e| AppError::DatabaseError(format!("Failed to delete user: {}", e)))?;
+
+    Ok(web::Json(serde_json::json!({
+        "message": "User deleted successfully"
+    })))
 }

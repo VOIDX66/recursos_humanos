@@ -1,6 +1,6 @@
 use crate::handlers::auth_handlers::{
     create_user_handler, login_user_handler, profile_handler, register_user_handler,
-    update_rol_handler, get_all_users_handler
+    update_rol_handler, get_all_users_handler, delete_user_handler
 };
 use actix_web::web;
 
@@ -16,4 +16,5 @@ pub fn protected_user_routes(cfg: &mut web::ServiceConfig) {
     cfg.route("/auth/create_user", web::post().to(create_user_handler));
     cfg.route("/auth/update_rol", web::put().to(update_rol_handler));
     cfg.route("/auth/get_all_users", web::get().to(get_all_users_handler));
+    cfg.route("/auth/delete", web::delete().to(delete_user_handler));
 }

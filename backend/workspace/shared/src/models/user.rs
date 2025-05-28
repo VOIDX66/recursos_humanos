@@ -91,3 +91,8 @@ pub struct UpdateRolData {
     #[validate(custom(function = "validate_role"))]
     pub new_rol: String,
 }
+
+#[derive(Deserialize)]
+pub struct DeleteUserPayload {
+    pub user_id: String,
+}

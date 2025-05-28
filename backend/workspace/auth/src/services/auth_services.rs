@@ -349,3 +349,58 @@ pub async fn get_all_users(conn: &Client) -> Result<Vec<UserResponse>, AppError>
 
     Ok(users)
 }
+
+pub async fn delete_user(
+    conn: &Client,
+    current_user_id: &str, // Usuario autenticado (admin)
+    target_user_id: &str,  // Usuario a eliminar
+) -> Result<(), AppError> {
+    // 1. Verificar rol del usuario actual
+    let stmt = conn
+        .prepare("SELECT role FROM users WHERE user_id = $1")
+        .await
+        .map_err(|_| AppError::DatabaseError("Failed to prepare role check query".into()))?;
+
+    let row = conn
+        .query_one(&stmt, &[&current_user_id])
+        .await
+        .map_err(|_| AppError::DatabaseError("Failed to execute role check query".into()))?;
+
+    let role: String = row.get("role");
+
+    if role.to_lowercase() != "admin" {
+        return Err(AppError::Unauthorized("Only admins can delete users".into()));
+    }
+
+    // 2. Prevenir autodelete
+    if current_user_id == target_user_id {
+        return Err(AppError::Unauthorized("You cannot delete yourself".into()));
+    }
+
+    // 3. Verificar que el usuario objetivo exista
+    let check_stmt = conn
+        .prepare("SELECT 1 FROM users WHERE user_id = $1")
+        .await
+        .map_err(|_| AppError::DatabaseError("Failed to prepare existence check".into()))?;
+
+    let exists = conn
+        .query_opt(&check_stmt, &[&target_user_id])
+        .await
+        .map_err(|_| AppError::DatabaseError("Failed to execute existence check".into()))?;
+
+    if exists.is_none() {
+        return Err(AppError::NotFoundError("Target user not found".into()));
+    }
+
+    // 4. Eliminar el usuario
+    let delete_stmt = conn
+        .prepare("DELETE FROM users WHERE user_id = $1")
+        .await
+        .map_err(|_| AppError::DatabaseError("Failed to prepare delete query".into()))?;
+
+    conn.execute(&delete_stmt, &[&target_user_id])
+        .await
+        .map_err(|_| AppError::DatabaseError("Failed to execute delete query".into()))?;
+
+    Ok(())
+}
