@@ -6,6 +6,7 @@ members = [
     "workspace/vacancy",
     "workspace/shared",
     "workspace/middleware",
-    "workspace/application"]
+    "workspace/application",
+    "workspace/evaluation"]
 
 resolver = "3"

@@ -14,6 +14,7 @@ dependencies = [
  "contract",
  "dotenv",
  "env_logger",
+ "evaluation",
  "log",
  "middleware",
  "serde",
@@ -345,6 +346,7 @@ name = "application"
 version = "0.1.0"
 dependencies = [
  "actix-web",
+ "chrono",
  "deadpool-postgres",
  "serde_json",
  "shared",
@@ -758,6 +760,19 @@ name = "equivalent"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
+
+[[package]]
+name = "evaluation"
+version = "0.1.0"
+dependencies = [
+ "actix-web",
+ "chrono",
+ "deadpool-postgres",
+ "serde_json",
+ "shared",
+ "tokio",
+ "tokio-postgres",
+]
 
 [[package]]
 name = "fallible-iterator"

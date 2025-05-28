@@ -6,6 +6,7 @@ use auth::routes::auth_routes::protected_user_routes;
 use vacancy::routes::vacancies_routes::{protected_vacancy_routes, vacancy_routes};
 use contract::routes::contract_routes::protected_contract_routes;
 use application::routes::application_routes::protected_application_routes;
+use evaluation::routes::evaluation_routes::protected_evaluations_routes;
 use std::env;
 
 use middleware::auth_middleware::validator;
@@ -61,6 +62,7 @@ async fn main() -> std::io::Result<()> {
                     .configure(protected_user_routes)
                     .configure(protected_vacancy_routes)
                     .configure(protected_application_routes)
+                    .configure(protected_evaluations_routes)
             )
     })
     .bind(("0.0.0.0", port.parse::<u16>().unwrap()))?

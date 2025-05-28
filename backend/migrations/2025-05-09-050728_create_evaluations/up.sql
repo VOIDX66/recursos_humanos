@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS evaluations (
     evaluator_id VARCHAR NOT NULL,                         -- El evaluador que realiza la evaluación
     evaluation_date TIMESTAMPTZ NOT NULL,  -- Fecha de la evaluación
     feedback TEXT,                                     -- Retroalimentación del evaluador
-    score NUMERIC(5, 2),                               -- Calificación de la evaluación (opcional)
+    score DOUBLE PRECISION,                               -- Calificación de la evaluación (opcional)
     status VARCHAR(20) NOT NULL DEFAULT 'pending',      -- Estado de la evaluación: pending, completed, etc.
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
