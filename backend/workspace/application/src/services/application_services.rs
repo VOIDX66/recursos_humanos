@@ -8,9 +8,9 @@ pub async fn apply_to_vacancy(
     client: &Client,
     data: ApplicationRequest,
 ) -> Result<(), AppError> {
-    // 1. Verificamos que la vacante exista y esté abierta
+    // 1. Verificamos que la vacante exista, esté abierta y obtenemos el evaluador
     let stmt = client
-        .prepare("SELECT status FROM vacancies WHERE id = $1")
+        .prepare("SELECT status, created_by FROM vacancies WHERE id = $1")
         .await
         .map_err(|e| AppError::DatabaseError(format!("Error preparando consulta de vacante: {}", e)))?;
 
@@ -24,11 +24,13 @@ pub async fn apply_to_vacancy(
     };
 
     let status: String = row.get("status");
+    let evaluator_id: String = row.get("created_by");
+
     if status.to_lowercase() != "open" {
         return Err(AppError::DatabaseError("La vacante no está abierta".into()));
     }
 
-    // 2. Insertamos la aplicación con status "pending" y sin comentario
+    // 2. Insertamos la aplicación
     let insert_stmt = client
         .prepare(
             "INSERT INTO applications (user_id, vacancy_id)
@@ -49,8 +51,47 @@ pub async fn apply_to_vacancy(
             AppError::DatabaseError(format!("Error al insertar la aplicación: {}", e))
         })?;
 
+    // 3. Programamos evaluación automáticamente
+    let evaluation_date = Utc::now() + Duration::days(5);
+
+    let insert_eval_stmt = client.prepare("
+        INSERT INTO evaluations (
+            vacancy_id, candidate_id, evaluator_id, evaluation_date, status
+        ) VALUES ($1, $2, $3, $4, 'pending_evaluation')
+    ").await.map_err(|e| {
+        AppError::DatabaseError(format!("Error preparando inserción de evaluación: {}", e))
+    })?;
+
+    client.execute(&insert_eval_stmt, &[
+        &data.vacancy_id,
+        &data.user_id,
+        &evaluator_id,
+        &evaluation_date,
+    ]).await.map_err(|e| {
+        AppError::DatabaseError(format!("Error insertando evaluación: {}", e))
+    })?;
+
+    // 4. Notificación al candidato
+    let title = "¡Has sido seleccionado para evaluación!".to_string();
+    let message = format!(
+        "Tu aplicación ha sido registrada. Tienes una evaluación programada para el día {}.",
+        evaluation_date.format("%d/%m/%Y a las %H:%M")
+    );
+
+    let insert_notif_stmt = client.prepare("
+        INSERT INTO notifications (user_id, title, message)
+        VALUES ($1, $2, $3)
+    ").await.map_err(|e| {
+        AppError::DatabaseError(format!("Error preparando notificación: {}", e))
+    })?;
+
+    client.execute(&insert_notif_stmt, &[&data.user_id, &title, &message]).await.map_err(|e| {
+        AppError::DatabaseError(format!("Error insertando notificación: {}", e))
+    })?;
+
     Ok(())
 }
+
 
 pub async fn get_applications_for_evaluator(
     client: &Client,
