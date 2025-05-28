@@ -17,7 +17,7 @@ pub async fn get_evaluations_for_evaluator(
             e.score, 
             e.status
         FROM evaluations e
-        JOIN users u ON u.id = e.candidate_id
+        JOIN users u ON u.user_id = e.candidate_id
         WHERE e.evaluator_id = $1
         ORDER BY e.evaluation_date DESC;
     ").await.map_err(|e| {
