@@ -298,7 +298,7 @@ pub async fn update_rol(
     // 4. Actualizar el rol
     let update_stmt = conn
         .prepare(
-            "UPDATE users SET rol = $1 WHERE id_number = $2
+            "UPDATE users SET role = $1 WHERE id_number = $2
              RETURNING user_id, id_number, name, lastname, email, role",
         )
         .await
