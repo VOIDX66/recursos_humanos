@@ -570,7 +570,9 @@ version = "0.1.0"
 dependencies = [
  "actix-files",
  "actix-web",
+ "base64",
  "mime",
+ "serde",
  "serde_json",
  "shared",
  "tokio",
