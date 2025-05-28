@@ -49,6 +49,14 @@ pub async fn get_contract_data(conn: &Client, user_id: &str, vacancy_id: &str) -
 
     let nombre_completo = format!("{} {}", name, lastname);
 
+    // Actualizar estado de la vacante a 'closed'
+    conn.execute(
+        "UPDATE vacancies SET status = 'closed' WHERE id = $1",
+        &[&vacancy_id],
+    )
+    .await
+    .map_err(|e| AppError::DatabaseError(format!("Failed to update vacancy status: {}", e)))?;
+
     Ok(ContractData {
         nombre_completo,
         id_number,
