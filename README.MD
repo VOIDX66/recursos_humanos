@@ -23,20 +23,14 @@ El proyecto está dividido en dos componentes principales:
 - Base de datos PostgreSQL  
   
 ### Frontend  
-- Desarrollado con **Node.js** y Express.js  
-- Sistema de plantillas EJS  
-- Interfaz de usuario adaptada a diferentes roles  
+- Desarrollado con **AppSmith**
   
 ## Requisitos previos  
   
 - **Rust**
 - **PostgreSQL**
 - **Cargo**
-- **Node.js**: Entorno de ejecución para JavaScript  
-- **Express.js**: Framework web para Node.js  
-- **EJS**: Sistema de plantillas para generar HTML  
-- **JavaScript**: Para la lógica del cliente
-  
+
 ## Instalación y configuración  
   
 ### 1. Clonar el repositorio  
